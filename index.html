@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16212B">
+<title>Kelenföld → Kapolcs u.</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kelenföld">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --paper:#EEF1EC; --card:#FFFFFF; --ink:#16212B; --muted:#5B6670; --line:#CDD4CF;
+  --go:#1F8A4C; --hurry:#C77F00; --run:#C8371D; --gone:#9AA3A9; --m4:#3FA535;
+  --sans:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0F1720; --card:#17222D; --ink:#E7ECE9; --muted:#93A0A8; --line:#2A3743;
+  --go:#3DBE72; --hurry:#F0A92A; --run:#F0644A; --gone:#56626C;
+}}
+:root[data-theme="dark"]{--paper:#0F1720;--card:#17222D;--ink:#E7ECE9;--muted:#93A0A8;--line:#2A3743;--go:#3DBE72;--hurry:#F0A92A;--run:#F0644A;--gone:#56626C}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.45 var(--sans);-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;padding:12px 16px 40px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--m4);outline-offset:2px}
+
+header{display:flex;align-items:center;gap:10px;padding:6px 0 12px;border-bottom:4px solid var(--m4)}
+header h1{font:700 26px/1 var(--cond);margin:0;flex:1;letter-spacing:.01em}
+header h1 small{display:block;font:500 14px/1.3 var(--sans);color:var(--muted);letter-spacing:0;margin-top:3px}
+.iconbtn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;font-weight:600}
+
+.offset{display:flex;align-items:center;gap:10px;margin:14px 0 6px;font-weight:500}
+.offset span.lbl{flex:1;color:var(--muted);font-size:15px}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
+.stepper button{border:0;background:none;width:44px;height:44px;font-size:22px;font-weight:600}
+.stepper output{min-width:56px;text-align:center;font:700 22px/1 var(--cond)}
+
+.hero{margin:12px 0 18px;padding:18px 18px 16px;border-radius:16px;background:var(--card);border-left:10px solid var(--go);position:relative}
+.hero.hurry{border-left-color:var(--hurry)} .hero.run{border-left-color:var(--run)} .hero.none{border-left-color:var(--gone)}
+.hero .top{display:flex;align-items:center;gap:12px}
+.hero .verdict{font:600 17px/1.2 var(--sans)}
+.hero .slack{font:700 clamp(72px,24vw,112px)/.9 var(--cond);font-variant-numeric:tabular-nums;margin:10px 0 2px;letter-spacing:-.01em}
+.hero .slack.go{color:var(--go)} .hero .slack.hurry{color:var(--hurry)} .hero .slack.run{color:var(--run)}
+.hero .slackcap{color:var(--muted);font-size:15px;margin-bottom:12px}
+.hero dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:16px}
+.hero dt{color:var(--muted)} .hero dd{margin:0;font-weight:600}
+.hero .empty{font-size:17px;margin:4px 0}
+
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:52px;height:34px;padding:0 9px;border-radius:7px;background:#0A7AC2;color:#fff;font:700 22px/1 var(--cond)}
+.hero .badge{min-width:64px;height:42px;font-size:28px}
+
+h2{font:600 20px/1.2 var(--cond);margin:22px 0 8px;letter-spacing:.02em;color:var(--muted)}
+.list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line)}
+.row .mid{min-width:0}
+.row .head{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sub{color:var(--muted);font-size:14px}
+.row .right{text-align:right;font:700 24px/1 var(--cond);font-variant-numeric:tabular-nums}
+.row .right small{display:block;font:500 13px/1.3 var(--sans);color:var(--muted)}
+.row.go .right{color:var(--go)} .row.hurry .right{color:var(--hurry)} .row.run .right{color:var(--run)}
+.row.gone{opacity:.45}
+.row.best{background:color-mix(in srgb,var(--go) 9%,transparent)}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--go);margin-right:5px;vertical-align:1px}
+.sched{background:var(--gone)}
+
+.status{font-size:14px;color:var(--muted);margin-top:12px;min-height:1.4em}
+.status.err{color:var(--run);font-weight:600}
+
+/* settings */
+dialog{border:0;border-radius:16px;padding:0;width:min(560px,100vw - 16px);max-height:calc(100% - 32px);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(10,15,20,.55)}
+.dlg{padding:18px 18px 22px;overflow-y:auto}
+.dlg h3{font:700 22px/1.2 var(--cond);margin:0 0 4px}
+.dlg h4{font:600 17px/1.2 var(--sans);margin:22px 0 6px}
+.dlg p.help{color:var(--muted);font-size:14px;margin:4px 0 8px}
+.field{display:flex;flex-direction:column;gap:4px;margin:10px 0}
+.field label{font-weight:500;font-size:15px}
+.field input{border:1px solid var(--line);border-radius:9px;padding:10px 11px;background:var(--paper);width:100%}
+.stopcfg{border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin:8px 0;display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+.stopcfg .meta{font-size:13px;color:var(--muted);grid-column:1/-1}
+.stopcfg input{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--paper);width:100%}
+.stopcfg .walk{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.stopcfg .walk input{width:72px;text-align:right}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;grid-column:1/-1}
+.btn{border:1px solid var(--line);background:var(--paper);border-radius:9px;padding:8px 12px;font-weight:600;font-size:15px}
+.btn.primary{background:var(--m4);border-color:var(--m4);color:#fff}
+.btn.danger{color:var(--run)}
+.found{list-style:none;padding:0;margin:8px 0}
+.found li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-bottom:1px solid var(--line);align-items:center}
+.found .meta{font-size:13px;color:var(--muted)}
+
+.measure{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);display:none;align-items:center;gap:12px;z-index:5}
+.measure.on{display:flex}
+.measure .t{font:700 34px/1 var(--cond);font-variant-numeric:tabular-nums}
+.measure .x{flex:1;font-size:14px}
+.measure button{border:0;border-radius:10px;padding:12px 14px;font-weight:700;background:var(--m4);color:#fff}
+.measure button.c{background:transparent;color:var(--paper);border:1px solid currentColor}
+
+.state{display:inline-block;font-size:13px;font-weight:600;padding:1px 7px;border-radius:6px;margin-top:3px;border:1px solid var(--line)}
+.state.dep{color:var(--muted)} .state.at{color:var(--go);border-color:var(--go)} .state.appr{color:var(--hurry);border-color:var(--hurry)} .state.unk{color:var(--muted);border-style:dashed}
+.delay{font-weight:700} .delay.late{color:var(--run)} .delay.early{color:var(--hurry)} .delay.ontime{color:var(--go)}
+.row.departed .right{color:var(--muted);font-size:18px}
+.mapbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.mapbar .info{font-size:14px;color:var(--muted);flex:1;min-width:180px}
+#map{height:340px;border-radius:14px;border:1px solid var(--line);background:var(--card);z-index:0}
+.vicon span{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:24px;padding:0 5px;border-radius:6px;font:700 15px/1 var(--cond);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.leaflet-container{font:inherit}
+@media (prefers-reduced-motion:no-preference){.hero .slack{transition:color .3s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Kelenföld → Kapolcs u.<small id="clock">–</small></h1>
+    <button class="iconbtn" id="openSettings" aria-label="Beállítások">Beállítások</button>
+  </header>
+
+  <div class="offset">
+    <span class="lbl">A metró ennyi perc múlva ér be</span>
+    <div class="stepper">
+      <button id="offMinus" aria-label="Kevesebb">−</button>
+      <output id="offVal">0</output>
+      <button id="offPlus" aria-label="Több">+</button>
+    </div>
+  </div>
+
+  <section class="hero none" id="hero" aria-live="polite">
+    <p class="empty">Add meg a BKK API-kulcsot a beállításokban.</p>
+  </section>
+
+  <h2>Térkép</h2>
+  <div class="mapbar">
+    <button class="btn" id="geoBtn">Pozícióm mutatása</button>
+    <div class="info" id="geoInfo">A buszok helyzete élő adatból, ha a járműhöz van pozíció.</div>
+  </div>
+  <div id="map" role="img" aria-label="Térkép a kocsiállásokkal, a buszokkal és a saját pozícióddal"></div>
+
+  <h2>Indulások (az elmúlt 10 perc is)</h2>
+  <ul class="list" id="list"></ul>
+  <div class="status" id="status"></div>
+</div>
+
+<div class="measure" id="measure" role="region" aria-label="Gyaloglási idő mérése">
+  <div class="t" id="mT">0:00</div>
+  <div class="x" id="mX">Mérés</div>
+  <button class="c" id="mCancel">Mégse</button>
+  <button id="mDone">Odaértem</button>
+</div>
+
+<dialog id="dlg">
+  <div class="dlg">
+    <h3>Beállítások</h3>
+
+    <div class="field">
+      <label for="key">BKK OpenData API-kulcs</label>
+      <input id="key" type="password" autocomplete="off" spellcheck="false">
+      <p class="help">Csak ebben a böngészőben tárolódik.</p>
+    </div>
+
+    <div class="field">
+      <label for="target">Célmegálló neve (részlet is elég)</label>
+      <input id="target" list="targetList" spellcheck="false">
+      <datalist id="targetList"></datalist>
+      <p class="help">Ehhez számolja az érkezési időt. Az első frissítés után a járatok útvonalán lévő megállók választhatók a listából.</p>
+    </div>
+
+    <div class="field">
+      <label for="lines">Csak ezek a járatok (vesszővel, üresen: mind)</label>
+      <input id="lines" placeholder="pl. 150, 250, 250B, 251, 251A" spellcheck="false">
+    </div>
+
+    <h4>Figyelt kocsiállások</h4>
+    <p class="help">A gyaloglási idő a metró ajtajától a kocsiállásig, percben. Mérd le egyszer a helyszínen: indítsd a mérést leszálláskor, és nyomd meg az „Odaértem” gombot a megállóban.</p>
+    <div id="stopCfg"></div>
+
+    <h4>Kocsiállások keresése a végállomáson</h4>
+    <p class="help">Az Őrmező felőli végállomás környékének megállói az API-ból, a rajtuk közlekedő járatokkal.</p>
+    <button class="btn" id="discover">Megállók keresése</button>
+    <ul class="found" id="found"></ul>
+
+    <h4>Diagnosztika</h4>
+    <p class="help">Lekéri a figyelt kocsiállások indulásait, néhány járat teljes adatát és a végállomás megállóit, és egy JSON-fájlba menti a fejlesztéshez. Az API-kulcsot a fájlból kitakarja. Akkor a leghasznosabb, ha van élő busz a kocsiállás felé vagy a kocsiállásban.</p>
+    <button class="btn" id="diagBtn">Diagnosztika mentése</button>
+    <p class="help" id="diagStatus"></p>
+    <p class="help" id="verInfo"></p>
+
+    <div class="btnrow" style="margin-top:22px">
+      <button class="btn primary" id="saveCfg">Mentés</button>
+      <button class="btn" id="closeCfg">Bezárás</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const APP_VERSION = '1.1.0';
+const BASE = 'https://futar.bkk.hu/api/query/v1/ws/otp/api/where/';
+const TERMINAL = {lat:47.4637, lon:19.0168, radius:450};
+const DEF = {
+  key:'',
+  target:'Kápolna út',
+  lines:'',
+  offset:0,
+  stops:[{id:'BKK_061222', label:'150 / 250 / 251 indulóállás', walk:3}]
+};
+
+let cfg = loadCfg();
+let deps = [];
+let tripCache = {};
+let lastFetch = 0, fetching = false;
+let measuring = null;
+const $ = id => document.getElementById(id);
+
+function loadCfg(){
+  try{ const s = JSON.parse(localStorage.getItem('kk_cfg')||'null'); return Object.assign(JSON.parse(JSON.stringify(DEF)), s||{}); }
+  catch(e){ return JSON.parse(JSON.stringify(DEF)); }
+}
+function saveCfg(){ try{ localStorage.setItem('kk_cfg', JSON.stringify(cfg)); }catch(e){} }
+
+const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+const hhmm = t => { const d=new Date(t*1000); return d.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'}); };
+const ymd = t => { const d=new Date(t*1000); return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); };
+function mmss(sec){ const s=Math.abs(Math.round(sec)); return (sec<0?'−':'')+Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function api(path, params){
+  const u = new URL(BASE + path);
+  const p = Object.assign({key:cfg.key, version:'3', appVersion:'kapolcs-'+APP_VERSION}, params);
+  for(const k in p) u.searchParams.set(k, p[k]);
+  let r;
+  try{ r = await fetch(u); }
+  catch(e){ throw new Error('Nem érhető el a FUTÁR API (nincs net, vagy a böngésző blokkolja a kérést).'); }
+  if(r.status===401||r.status===403) throw new Error('Az API-kulcsot elutasította a szerver ('+r.status+').');
+  if(!r.ok) throw new Error('FUTÁR API hiba: HTTP '+r.status);
+  const j = await r.json();
+  if(j.code && j.code!==200) throw new Error('FUTÁR API: '+(j.text||j.code));
+  return j;
+}
+
+function lineFilter(){ return cfg.lines.split(/[,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean); }
+
+let stopCoords = {};      // stopId -> {lat,lon,name}
+let observedDep = {};     // tripId -> epoch s, amikor először láttuk a megálló után
+
+async function fetchDeps(){
+  const filt = lineFilter();
+  const out = [];
+  for(const s of cfg.stops){
+    const j = await api('arrivals-and-departures-for-stop.json', {
+      stopId:s.id, minutesBefore:'10', minutesAfter:'45', onlyDepartures:'true', includeReferences:'true', limit:'50'
+    });
+    const refs = j.data.references || {};
+    const sref = refs.stops?.[s.id];
+    if(sref) stopCoords[s.id] = {lat:sref.lat, lon:sref.lon, name:sref.name};
+    const stopName = sref?.name || '';
+    for(const t of (j.data.entry.stopTimes||[])){
+      const trip = refs.trips?.[t.tripId];
+      const route = trip && refs.routes?.[trip.routeId];
+      const line = route?.shortName || '?';
+      if(filt.length && !filt.includes(line.toUpperCase())) continue;
+      const sched = t.departureTime || t.arrivalTime;
+      const pred = t.predictedDepartureTime || t.predictedArrivalTime || null;
+      const dep = pred || sched;
+      if(!dep) continue;
+      out.push({
+        stop:s, stopName, tripId:t.tripId, serviceDate:t.serviceDate || trip?.serviceDate || '',
+        line, color:route?.color, textColor:route?.textColor,
+        headsign: t.stopHeadsign || trip?.tripHeadsign || '',
+        dep, sched, pred, live: !!pred
+      });
+    }
+  }
+  out.sort((a,b)=>a.dep-b.dep);
+  return out;
+}
+
+async function tripInfo(d){
+  const nowS = Date.now()/1000;
+  const ttl = Math.abs(d.dep-nowS) < 900 ? 15000 : 60000;   // közeli járatokat sűrűbben
+  const c = tripCache[d.tripId];
+  if(c && Date.now()-c.at < ttl && c.target===cfg.target) return c;
+  const params = {tripId:d.tripId, includeReferences:'stops'};
+  params.date = d.serviceDate || ymd(d.sched || d.dep);
+  const j = await api('trip-details.json', params);
+  const entry = j.data.entry || {};
+  const stops = j.data.references?.stops || {};
+  const sts = entry.stopTimes || [];
+  let from = sts.findIndex(x=>x.stopId===d.stop.id);
+  const tgt = norm(cfg.target);
+  const res = {at:Date.now(), target:cfg.target, arr:null, arrName:null, arrLive:false, names:[], veh:null, state:'nodata'};
+  for(let i=(from<0?0:from)+1;i<sts.length;i++){
+    const n = stops[sts[i].stopId]?.name || '';
+    res.names.push(n);
+    if(res.arr==null && tgt && norm(n).includes(tgt)){
+      res.arr = sts[i].predictedArrivalTime || sts[i].arrivalTime || sts[i].predictedDepartureTime || sts[i].departureTime;
+      res.arrLive = !!(sts[i].predictedArrivalTime || sts[i].predictedDepartureTime);
+      res.arrName = n;
+    }
+  }
+  if(from>=0){
+    const me = sts[from];
+    if(me.departureTime) d.sched = me.departureTime;
+    if(me.predictedDepartureTime){ d.pred = me.predictedDepartureTime; d.live = true; d.dep = d.pred; }
+  }
+  const v = entry.vehicle;
+  if(v && v.location){
+    res.veh = {lat:v.location.lat, lon:v.location.lon, bearing:v.bearing, status:v.status||'', plate:v.licensePlate||'', model:v.model||'', updated:v.lastUpdateTime||null};
+    const vi = sts.findIndex(x=>x.stopId===v.stopId);
+    if(from>=0 && vi>from) res.state = 'departed';
+    else if(from>=0 && vi===from && v.status==='STOPPED_AT') res.state = 'atstop';
+    else res.state = 'approaching';
+  }else if(d.pred){
+    res.state = 'predicted';
+  }
+  if(res.state==='departed' && !observedDep[d.tripId]){
+    // ha az előrejelzett indulás már elmúlt, az a legjobb becslés; különben az észlelés ideje
+    observedDep[d.tripId] = (d.pred && d.pred <= nowS) ? d.pred : nowS;
+  }
+  tripCache[d.tripId] = res;
+  return res;
+}
+
+async function refresh(){
+  if(fetching) return;
+  if(!cfg.key){ render(); setStatus('Hiányzik az API-kulcs.', true); return; }
+  fetching = true; setStatus('Frissítés…');
+  try{
+    deps = await fetchDeps();
+    const nowS = Date.now()/1000;
+    const sel = deps.filter(d=>d.dep > nowS-600 && d.dep < nowS+1800).slice(0,12);
+    const names = new Set();
+    await Promise.all(sel.map(async d=>{
+      try{ d.info = await tripInfo(d); d.info.names.forEach(n=>names.add(n)); }
+      catch(e){ d.info = null; }
+    }));
+    const dl = $('targetList');
+    if(names.size){ dl.innerHTML = [...names].sort((a,b)=>a.localeCompare(b,'hu')).map(n=>`<option value="${esc(n)}">`).join(''); }
+    lastFetch = Date.now();
+    stale = false;
+    saveLast();
+    setStatus('Frissítve: '+new Date().toLocaleTimeString('hu-HU')+' — 20 mp-enként automatikusan.');
+  }catch(e){
+    setStatus(e.message + (stale && lastSaved ? ` Utolsó ismert adat: ${hhmm(lastSaved/1000)} (${Math.round((Date.now()-lastSaved)/60000)} perce).` : ''), true);
+  }finally{ fetching = false; render(); drawMap(); }
+}
+
+function setStatus(t, err){ const s=$('status'); s.textContent=t; s.className='status'+(err?' err':''); }
+
+function classify(slack){
+  if(slack<0) return 'gone';
+  if(slack<60) return 'run';
+  if(slack<180) return 'hurry';
+  return 'go';
+}
+const VERDICT = {go:'Nyugodtan odaérsz', hurry:'Siess', run:'Csak futva', gone:'Lekésed'};
+
+function badge(d){
+  const bg = d.color ? '#'+d.color : '#0A7AC2';
+  const fg = d.textColor ? '#'+d.textColor : '#fff';
+  return `<span class="badge" style="background:${bg};color:${fg}">${esc(d.line)}</span>`;
+}
+
+function delayHtml(sec){
+  if(sec==null || !isFinite(sec)) return '';
+  const m = Math.round(sec/60);
+  const cls = m>=2 ? 'late' : (m<=-1 ? 'early' : 'ontime');
+  const txt = m===0 ? 'pontos' : (m>0 ? '+'+m+' perc' : m+' perc');
+  return `<span class="delay ${cls}">${txt}</span>`;
+}
+
+// állapot + eltérés a menetrendtől
+function stateOf(d, now){
+  const st = d.info?.state || (d.pred ? 'predicted' : 'nodata');
+  const obs = observedDep[d.tripId];
+  if(st==='departed'){
+    const t = obs || d.pred;
+    return {key:'departed', cls:'dep', text:`Elindult ~${hhmm(t)}`, delay: t && d.sched ? t-d.sched : null, gone:true};
+  }
+  if(st==='atstop') return {key:'atstop', cls:'at', text:'Áll a kocsiállásban', delay: d.pred&&d.sched ? d.pred-d.sched : null};
+  if(st==='approaching') return {key:'approaching', cls:'appr', text:'Jármű úton a kocsiállás felé', delay: d.pred&&d.sched ? d.pred-d.sched : null};
+  if(st==='predicted') return {key:'predicted', cls:'appr', text:'Élő becslés, pozíció nélkül', delay: d.pred-d.sched};
+  if(d.sched && d.sched < now) return {key:'unknown', cls:'unk', text:'Nincs élő adat, az indulás nem ellenőrizhető', delay:null, gone:true};
+  return {key:'sched', cls:'unk', text:'Csak menetrend (még nincs jármű)', delay:null};
+}
+
+function render(){
+  const now = Date.now()/1000;
+  $('clock').textContent = new Date().toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  $('offVal').textContent = cfg.offset;
+  const ref = now + cfg.offset*60;
+
+  const rows = deps.filter(d=>d.dep > now-600 || (d.sched && d.sched > now-600)).map(d=>{
+    const st = stateOf(d, now);
+    const slack = st.gone ? -1 : d.dep - (ref + (Number(d.stop.walk)||0)*60);
+    return Object.assign(d,{st, slack, cls: st.key==='departed' ? 'gone departed' : classify(slack)});
+  });
+
+  const ok = rows.filter(d=>d.slack>=0);
+  const score = d => (d.info && d.info.arr) ? d.info.arr : (d.info && !d.info.arr && cfg.target ? Infinity : d.dep + 1e6);
+  let best = null;
+  for(const d of ok){
+    if(!best || score(d)<score(best) || (score(d)===score(best) && d.slack>best.slack)) best=d;
+  }
+  if(best && score(best)===Infinity) best = ok[0] || null;
+  bestStopId = best ? best.stop.id : null;
+
+  const hero = $('hero');
+  if(!cfg.key){
+    hero.className='hero none'; hero.innerHTML='<p class="empty">Add meg a BKK API-kulcsot a beállításokban.</p>';
+  }else if(!best){
+    hero.className='hero none';
+    hero.innerHTML = `<p class="empty">${deps.length? 'A következő 45 percben nincs elérhető indulás a figyelt kocsiállásokról.' : 'Nincs adat még. Ellenőrizd a kocsiállásokat a beállításokban.'}</p>`;
+  }else{
+    const c = best.cls;
+    const arr = best.info?.arr;
+    const dist = myPos && stopCoords[best.stop.id] ? haversine(myPos, stopCoords[best.stop.id]) : null;
+    hero.className = 'hero '+c;
+    hero.innerHTML = `
+      <div class="top">${badge(best)}<div class="verdict">${VERDICT[c]}</div></div>
+      <div class="slack ${c}">${mmss(best.slack)}</div>
+      <div class="slackcap">tartalék a kocsiállásnál, ${Number(best.stop.walk)||0} perc gyaloglással számolva</div>
+      <dl>
+        <dt>Menj ide</dt><dd>${esc(best.stop.label || best.stopName)}${dist!=null?` (${Math.round(dist)} m légvonalban)`:''}</dd>
+        <dt>Indul</dt><dd><span class="live ${best.live?'':'sched'}"></span>${hhmm(best.dep)}${best.live?' (élő)':' (menetrend)'}</dd>
+        <dt>Menetrend</dt><dd>${best.sched?hhmm(best.sched):'–'} ${delayHtml(best.st.delay)}</dd>
+        <dt>Jármű</dt><dd>${esc(best.st.text)}</dd>
+        <dt>Irány</dt><dd>${esc(best.headsign)}</dd>
+        <dt>Célba ér</dt><dd>${arr ? esc(best.info.arrName)+', '+hhmm(arr)+(best.info.arrLive?' (becsült)':'') : (best.info ? 'nem áll meg: '+esc(cfg.target) : '–')}</dd>
+      </dl>`;
+  }
+
+  $('list').innerHTML = rows.length ? rows.map(d=>{
+    const arr = d.info?.arr;
+    const arrTxt = d.info ? (arr ? 'célba '+hhmm(arr) : 'nem áll meg a célban') : '';
+    const departed = d.st.key==='departed';
+    const right = departed ? `elment<small>${d.st.delay!=null?delayHtml(d.st.delay):''}</small>`
+                : d.st.key==='unknown' ? `?<small>nincs adat</small>`
+                : `${d.slack<0?'–':mmss(d.slack)}<small>${d.slack<0?'lekésed':'tartalék'}</small>`;
+    return `<li class="row ${d.cls}${d===best?' best':''}">
+      ${badge(d)}
+      <div class="mid">
+        <div class="head">${esc(d.headsign)}</div>
+        <div class="sub">menetrend ${d.sched?hhmm(d.sched):'–'}${d.pred?', élő '+hhmm(d.pred):''} ${!departed?delayHtml(d.st.delay):''}<br>${esc(d.stop.label||d.stopName)}${arrTxt?', '+arrTxt:''}</div>
+        <span class="state ${d.st.cls}">${esc(d.st.text)}</span>
+      </div>
+      <div class="right">${right}</div>
+    </li>`;
+  }).join('') : '';
+}
+
+/* --- beállítások --- */
+function renderStopCfg(){
+  $('stopCfg').innerHTML = cfg.stops.map((s,i)=>`
+    <div class="stopcfg">
+      <input data-i="${i}" data-f="label" value="${esc(s.label)}" aria-label="Kocsiállás neve">
+      <span class="walk"><input data-i="${i}" data-f="walk" type="number" step="0.1" min="0" value="${esc(s.walk)}" aria-label="Gyaloglási idő percben"> perc</span>
+      <div class="meta">${esc(s.id)}</div>
+      <div class="btnrow">
+        <button class="btn" data-measure="${i}">Gyaloglás mérése</button>
+        <button class="btn danger" data-del="${i}">Eltávolítás</button>
+      </div>
+    </div>`).join('') || '<p class="help">Nincs figyelt kocsiállás.</p>';
+}
+function readForm(){
+  cfg.key = $('key').value.trim();
+  cfg.target = $('target').value.trim();
+  cfg.lines = $('lines').value.trim();
+  document.querySelectorAll('#stopCfg input').forEach(inp=>{
+    const s = cfg.stops[+inp.dataset.i]; if(!s) return;
+    s[inp.dataset.f] = inp.dataset.f==='walk' ? Math.max(0, parseFloat(inp.value)||0) : inp.value;
+  });
+}
+$('openSettings').onclick = ()=>{
+  $('key').value = cfg.key; $('target').value = cfg.target; $('lines').value = cfg.lines;
+  renderStopCfg(); $('dlg').showModal();
+};
+$('closeCfg').onclick = ()=> $('dlg').close();
+$('saveCfg').onclick = ()=>{ readForm(); saveCfg(); tripCache={}; $('dlg').close(); refresh(); };
+$('stopCfg').addEventListener('click', e=>{
+  const del = e.target.dataset.del, mi = e.target.dataset.measure;
+  if(del!==undefined){ readForm(); cfg.stops.splice(+del,1); renderStopCfg(); }
+  if(mi!==undefined){ readForm(); saveCfg(); $('dlg').close(); startMeasure(+mi); }
+});
+
+$('discover').onclick = async ()=>{
+  readForm();
+  const ul = $('found');
+  if(!cfg.key){ ul.innerHTML='<li>Előbb add meg az API-kulcsot.</li>'; return; }
+  ul.innerHTML = '<li>Keresés…</li>';
+  try{
+    const j = await api('stops-for-location.json', {lat:TERMINAL.lat, lon:TERMINAL.lon, radius:TERMINAL.radius, includeReferences:'routes'});
+    const routes = j.data.references?.routes || {};
+    const list = (j.data.list||[]).filter(s=>(s.routeIds||[]).some(r=>routes[r]?.type==='BUS' || /^BKK_[0-9]/.test(r)));
+    ul.innerHTML = list.map(s=>{
+      const lines = (s.routeIds||[]).map(r=>routes[r]?.shortName).filter(Boolean);
+      const have = cfg.stops.some(x=>x.id===s.id);
+      return `<li><div><strong>${esc(s.name)}</strong>
+        <div class="meta">${esc(s.id)}${s.code?' / kód: '+esc(s.code):''}${s.description?' / '+esc(s.description):''}</div>
+        <div class="meta">Járatok: ${esc(lines.join(', ')||'–')}</div></div>
+        <button class="btn" data-add="${esc(s.id)}" data-name="${esc(lines.join('/'))}" ${have?'disabled':''}>${have?'Figyelve':'Figyelés'}</button></li>`;
+    }).join('') || '<li>Nincs találat.</li>';
+  }catch(e){ ul.innerHTML = `<li>${esc(e.message)}</li>`; }
+};
+$('found').addEventListener('click', e=>{
+  const id = e.target.dataset.add; if(!id) return;
+  readForm();
+  cfg.stops.push({id, label:(e.target.dataset.name||id)+' kocsiállás', walk:3});
+  e.target.disabled = true; e.target.textContent = 'Figyelve';
+  renderStopCfg();
+});
+
+/* --- gyaloglás mérése --- */
+function startMeasure(i){
+  measuring = {i, start:Date.now()};
+  $('mX').textContent = 'Mérés: '+(cfg.stops[i].label||cfg.stops[i].id);
+  $('measure').classList.add('on');
+}
+$('mCancel').onclick = ()=>{ measuring=null; $('measure').classList.remove('on'); };
+$('mDone').onclick = ()=>{
+  if(!measuring) return;
+  const min = Math.round((Date.now()-measuring.start)/6000)/10;
+  const s = cfg.stops[measuring.i];
+  if(s){ s.walk = min; saveCfg(); setStatus(`Mentve: ${s.label} — ${min} perc gyaloglás.`); }
+  measuring=null; $('measure').classList.remove('on'); render();
+};
+
+/* --- metró érkezés eltolás --- */
+$('offMinus').onclick = ()=>{ cfg.offset=Math.max(0,cfg.offset-1); saveCfg(); render(); };
+$('offPlus').onclick  = ()=>{ cfg.offset=Math.min(30,cfg.offset+1); saveCfg(); render(); };
+
+/* --- ciklus --- */
+setInterval(()=>{
+  render();
+  if(measuring) $('mT').textContent = mmss((Date.now()-measuring.start)/1000);
+  if(cfg.key && Date.now()-lastFetch > 20000 && !document.hidden) refresh();
+}, 1000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refresh(); });
+
+
+/* --- térkép és saját pozíció --- */
+let map=null, mapLayers={}, myPos=null, geoWatch=null, mapFitted=false, bestStopId=null;
+function haversine(a,b){
+  const R=6371000, toR=x=>x*Math.PI/180;
+  const dLat=toR(b.lat-a.lat), dLon=toR(b.lon-a.lon);
+  const h=Math.sin(dLat/2)**2+Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function initMap(){
+  if(map) return;
+  if(!window.L){ $('map').innerHTML='<p class="help" style="padding:12px">A térképkönyvtár nem töltődött be (nincs net?).</p>'; return; }
+  map = L.map('map',{zoomControl:true, attributionControl:true}).setView([TERMINAL.lat,TERMINAL.lon],16);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+  mapLayers.stops=L.layerGroup().addTo(map);
+  mapLayers.veh=L.layerGroup().addTo(map);
+  mapLayers.me=L.layerGroup().addTo(map);
+}
+function drawMap(){
+  if(!map) return;
+  const css = getComputedStyle(document.documentElement);
+  mapLayers.stops.clearLayers();
+  for(const s of cfg.stops){
+    const c = stopCoords[s.id]; if(!c) continue;
+    const isBest = s.id===bestStopId;
+    L.circleMarker([c.lat,c.lon],{radius:isBest?10:7, color:'#fff', weight:2, fillColor:isBest?css.getPropertyValue('--go').trim():'#5B6670', fillOpacity:1})
+      .bindTooltip((s.label||c.name)+(isBest?' (ajánlott)':''),{permanent:isBest, direction:'top', offset:[0,-8]})
+      .addTo(mapLayers.stops);
+  }
+  mapLayers.veh.clearLayers();
+  const now = Date.now()/1000;
+  for(const d of deps){
+    const v = d.info?.veh; if(!v) continue;
+    const bg = d.color ? '#'+d.color : '#0A7AC2', fg = d.textColor ? '#'+d.textColor : '#fff';
+    const age = v.updated ? Math.round(now - v.updated) : null;
+    L.marker([v.lat,v.lon],{icon:L.divIcon({className:'vicon', html:`<span style="background:${bg};color:${fg}">${esc(d.line)}</span>`, iconSize:null})})
+      .bindPopup(`<strong>${esc(d.line)}</strong> ${esc(d.headsign)}<br>${esc(stateOf(d,now).text)}<br>menetrend ${d.sched?hhmm(d.sched):'–'}${d.pred?', élő '+hhmm(d.pred):''}${v.plate?'<br>'+esc(v.plate):''}${age!=null?'<br>pozíció '+age+' mp-es':''}`)
+      .addTo(mapLayers.veh);
+  }
+  drawMe();
+}
+function drawMe(){
+  if(!map) return;
+  mapLayers.me.clearLayers();
+  if(!myPos) return;
+  L.circle([myPos.lat,myPos.lon],{radius:myPos.acc||0, color:'#2F6FDB', weight:1, fillOpacity:.12}).addTo(mapLayers.me);
+  L.circleMarker([myPos.lat,myPos.lon],{radius:8, color:'#fff', weight:3, fillColor:'#2F6FDB', fillOpacity:1}).bindTooltip('Te').addTo(mapLayers.me);
+  if(!mapFitted){ map.setView([myPos.lat,myPos.lon], Math.max(map.getZoom(),16)); mapFitted=true; }
+}
+$('geoBtn').onclick = ()=>{
+  if(geoWatch!==null){
+    navigator.geolocation.clearWatch(geoWatch); geoWatch=null; myPos=null; mapFitted=false;
+    $('geoBtn').textContent='Pozícióm mutatása'; $('geoInfo').textContent='Pozíciókövetés kikapcsolva.'; drawMe(); render(); return;
+  }
+  if(!('geolocation' in navigator)){ $('geoInfo').textContent='Ez a böngésző nem ad helyadatot.'; return; }
+  $('geoInfo').textContent='Helymeghatározás…';
+  geoWatch = navigator.geolocation.watchPosition(p=>{
+    myPos = {lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy};
+    const c = bestStopId && stopCoords[bestStopId];
+    $('geoInfo').textContent = `Pontosság ±${Math.round(p.coords.accuracy)} m` + (c ? `, az ajánlott kocsiállás ${Math.round(haversine(myPos,c))} m légvonalban` : '');
+    drawMe(); render();
+  }, e=>{
+    const msg = {1:'A helyadat-hozzáférést megtagadtad a böngészőben.',2:'Nincs helyadat (föld alatt ez várható).',3:'A helymeghatározás időtúllépés miatt megszakadt.'}[e.code] || e.message;
+    $('geoInfo').textContent = msg;
+  }, {enableHighAccuracy:true, maximumAge:5000, timeout:20000});
+  $('geoBtn').textContent='Pozíció kikapcsolása';
+};
+initMap();
+
+/* --- utolsó ismert adat (offline / gyenge térerő) --- */
+let stale = false, lastSaved = 0;
+function saveLast(){
+  try{
+    const slim = deps.map(d=>{ const o = Object.assign({}, d); o.stopId = d.stop.id; delete o.stop; delete o.st; return o; });
+    localStorage.setItem('kk_last', JSON.stringify({at:Date.now(), deps:slim, stopCoords, observedDep}));
+    lastSaved = Date.now();
+  }catch(e){}
+}
+function loadLast(){
+  try{
+    const o = JSON.parse(localStorage.getItem('kk_last')||'null');
+    if(!o || Date.now()-o.at > 3*3600*1000) return;
+    stopCoords = o.stopCoords || {};
+    observedDep = o.observedDep || {};
+    deps = (o.deps||[]).map(d=>{
+      d.stop = cfg.stops.find(s=>s.id===d.stopId) || {id:d.stopId, label:d.stopName, walk:3};
+      return d;
+    });
+    stale = true; lastSaved = o.at;
+    setStatus(`Utolsó ismert adat: ${hhmm(o.at/1000)}. Frissítés folyamatban…`);
+  }catch(e){}
+}
+
+/* --- diagnosztika --- */
+function redact(obj){
+  const k = cfg.key;
+  return JSON.parse(JSON.stringify(obj, (kk,v)=> (typeof v==='string' && k && v.includes(k)) ? v.split(k).join('***') : v));
+}
+async function rawCall(path, params){
+  const u = new URL(BASE + path);
+  const p = Object.assign({key:cfg.key, version:'3', appVersion:'kapolcs-'+APP_VERSION}, params);
+  for(const k in p) u.searchParams.set(k, p[k]);
+  const rec = {endpoint:path, params:Object.assign({}, params), requestedAt:new Date().toISOString()};
+  const t0 = performance.now();
+  try{
+    const r = await fetch(u);
+    rec.httpStatus = r.status;
+    rec.ms = Math.round(performance.now()-t0);
+    rec.contentType = r.headers.get('content-type');
+    const txt = await r.text();
+    try{ rec.body = JSON.parse(txt); }catch(e){ rec.bodyText = txt.slice(0,5000); }
+  }catch(e){ rec.error = String(e); rec.ms = Math.round(performance.now()-t0); }
+  return rec;
+}
+function keysDeep(o, depth=0){
+  if(!o || typeof o!=='object' || depth>2) return typeof o;
+  if(Array.isArray(o)) return o.length ? [keysDeep(o[0], depth+1)] : [];
+  const r = {}; for(const k of Object.keys(o)) r[k] = keysDeep(o[k], depth+1); return r;
+}
+async function runDiagnostics(){
+  const st = $('diagStatus');
+  if(!cfg.key){ st.textContent = 'Előbb add meg az API-kulcsot.'; return; }
+  $('diagBtn').disabled = true;
+  const out = {
+    app:APP_VERSION, created:new Date().toISOString(), tzOffsetMin:new Date().getTimezoneOffset(),
+    userAgent:navigator.userAgent, protocol:location.protocol, standalone: matchMedia('(display-mode: standalone)').matches,
+    config:{target:cfg.target, lines:cfg.lines, offset:cfg.offset, stops:cfg.stops},
+    calls:[], appState:null, shapes:{}
+  };
+  try{
+    const nowS = Date.now()/1000;
+    const cand = [];
+    let n = 0;
+    for(const s of cfg.stops){
+      st.textContent = `Indulások: ${s.label||s.id}…`;
+      const rec = await rawCall('arrivals-and-departures-for-stop.json', {stopId:s.id, minutesBefore:'10', minutesAfter:'45', onlyDepartures:'true', includeReferences:'true', limit:'50'});
+      out.calls.push(rec);
+      for(const t of (rec.body?.data?.entry?.stopTimes || [])){
+        const sched = t.departureTime || t.arrivalTime;
+        cand.push({tripId:t.tripId, date:t.serviceDate || ymd(sched), live:!!(t.predictedDepartureTime||t.predictedArrivalTime), dt:Math.abs(sched-nowS)});
+      }
+    }
+    // élő járatok előnyben, aztán a most körüliek; max. 5 járat
+    cand.sort((a,b)=> (b.live-a.live) || (a.dt-b.dt));
+    const picked = []; const seen = new Set();
+    for(const c of cand){ if(!seen.has(c.tripId)){ seen.add(c.tripId); picked.push(c); } if(picked.length>=4) break; }
+    const schedOnly = cand.find(c=>!c.live && !seen.has(c.tripId)); if(schedOnly) picked.push(schedOnly);
+    for(const c of picked){
+      st.textContent = `Járatadat ${++n}/${picked.length}…`;
+      out.calls.push(await rawCall('trip-details.json', {tripId:c.tripId, date:c.date, includeReferences:'stops'}));
+    }
+    st.textContent = 'Megállók a végállomáson…';
+    out.calls.push(await rawCall('stops-for-location.json', {lat:TERMINAL.lat, lon:TERMINAL.lon, radius:TERMINAL.radius, includeReferences:'routes'}));
+
+    // mezőszerkezet összefoglaló, hogy gyorsan látsszon, mi jön valójában
+    const firstOf = ep => out.calls.find(c=>c.endpoint===ep && c.body);
+    const a = firstOf('arrivals-and-departures-for-stop.json');
+    if(a){ out.shapes.stopTime = keysDeep(a.body.data?.entry?.stopTimes?.[0]); out.shapes.referencesKeys = Object.keys(a.body.data?.references||{}); }
+    const tds = out.calls.filter(c=>c.endpoint==='trip-details.json' && c.body);
+    const withVeh = tds.find(c=>c.body.data?.entry?.vehicle);
+    out.shapes.tripEntry = tds[0] ? keysDeep(tds[0].body.data?.entry) : null;
+    out.shapes.vehicle = withVeh ? keysDeep(withVeh.body.data.entry.vehicle) : 'egyik lekért járatnál sem volt vehicle mező';
+    out.shapes.tripDetailsWithVehicle = tds.filter(c=>c.body.data?.entry?.vehicle).length + ' / ' + tds.length;
+
+    out.appState = deps.slice(0,20).map(d=>({
+      line:d.line, tripId:d.tripId, stopId:d.stop?.id, sched:d.sched, pred:d.pred, dep:d.dep,
+      state:d.info?.state, veh:d.info?.veh, arr:d.info?.arr, arrName:d.info?.arrName, observedDep:observedDep[d.tripId]||null
+    }));
+
+    const name = 'kelenfold-diag-' + new Date().toISOString().slice(0,16).replace(/[:T]/g,'-') + '.json';
+    await saveJson(redact(out), name);
+    const errs = out.calls.filter(c=>c.error || c.httpStatus!==200).length;
+    st.textContent = `Kész: ${name}. ${out.calls.length} lekérés, ${errs} hibás. Járműadat: ${out.shapes.tripDetailsWithVehicle} járatnál.`;
+  }catch(e){
+    st.textContent = 'Hiba a diagnosztika közben: ' + e.message;
+  }finally{ $('diagBtn').disabled = false; }
+}
+async function saveJson(obj, name){
+  const text = JSON.stringify(obj, null, 1);
+  const blob = new Blob([text], {type:'application/json'});
+  const mobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(mobile && navigator.canShare){
+    const file = new File([blob], name, {type:'application/json'});
+    if(navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], title:name}); return; }
+      catch(e){ if(e.name==='AbortError') return; }
+    }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+}
+$('diagBtn').onclick = ()=>{ readForm(); saveCfg(); runDiagnostics(); };
+$('verInfo').textContent = 'Verzió: ' + APP_VERSION;
+
+/* --- telepíthető alkalmazás (csak HTTPS-en) --- */
+if('serviceWorker' in navigator && location.protocol==='https:'){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+loadLast();
+render();
+refresh();
+</script>
+</body>
+</html>
